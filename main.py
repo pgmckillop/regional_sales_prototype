@@ -17,6 +17,8 @@ def main_menu():
     print('3) Perform enhanced search')
     print('4) Team performance')
     print('5) Region performance')
+    print('6) Single Team sales over time')
+    print('7) All teams sales over time')
     print('9) Exit the program')
     choice = int(input("\n  Enter a menu number: "))
     return choice
@@ -396,6 +398,129 @@ def process_total_sales_over_time():
     total_sales_over_time(start_of_period, end_of_period)
 
 
+# *****************************************************************
+# MENU OPTION 6: Plot Single team sales values over time
+# *****************************************************************
+def show_single_team_sales(team_selected, start_date, end_date):
+    """
+    Displays the monthly sales for a selected team between the specified start and end dates as a bar chart.
+    """
+    # Validate the start_date and end_date
+
+    # Ensure the start_date comes before the end_date
+    start_index = sales2.columns.get_loc(start_date)
+    end_index = sales2.columns.get_loc(end_date)
+    if start_index > end_index:
+        print("Start date must be before the end date.")
+        return
+
+    # Filter the DataFrame for the selected team
+    team_data = sales2[sales2['Sales_Team'].str.lower() == team_selected]
+
+    if team_data.empty:
+        print(f"No data found for {team_selected}. Please check the team name.")
+        return
+
+    # Extract the sales data for the specified period
+    sales_columns = sales2.columns[start_index:end_index + 1]
+    monthly_sales = team_data[sales_columns].sum()
+
+    # Plotting
+    plt.figure(figsize=(10, 6))
+    plt.style.use('ggplot')
+    plt.bar(monthly_sales.index, monthly_sales, color='blue')
+    plt.title(f"Monthly Sales for {team_selected.upper()} from {start_date} to {end_date}")
+    plt.xlabel('Month')
+    plt.xticks(rotation=45)  # Rotate the x-axis labels for better readability
+    plt.ylabel('Sales')
+    plt.show()
+
+
+def process_show_single_team_sales():
+    team_selected = get_sales_team()
+    start_date_selected = get_start_date()
+    end_date_selected = get_end_date()
+
+    # Use the function to display the data.
+    show_single_team_sales(team_selected, start_date_selected, end_date_selected)
+
+
+# *****************************************************************
+# MENU OPTION 7: All team sales over time
+# *****************************************************************
+def all_team_sales(start_date, end_date):
+    """
+    Displays a bar chart with the dates on the x-axis and shows the total sales for all the teams
+    using side-by-side columns for the specified period.
+	"""
+    # Ensure the start_date comes before the end_date
+    start_index = sales2.columns.get_loc(start_date)
+    end_index = sales2.columns.get_loc(end_date)
+    if start_index > end_index:
+        print("Start date must be before the end date.")
+        return
+
+    # Extract the sales data for the specified period
+    sales_columns = sales2.columns[start_index:end_index + 1]
+    df_period_sales = sales2.groupby('Sales_Team')[sales_columns].sum().T
+
+    # Plotting
+    plt.figure(figsize=(14, 8))
+    plt.style.use('ggplot')
+    df_period_sales.plot(kind='bar', width=0.8, figsize=(14, 8))
+    plt.title(f"Total Sales by Team from {start_date} to {end_date}")
+    plt.xlabel('Month')
+    plt.xticks(rotation=45)  # Rotate the x-axis labels for better readability
+    plt.ylabel('Total Sales')
+    plt.legend(title='Sales Team')
+    plt.tight_layout()  # Adjust the layout to make room for the rotated x-axis labels
+    plt.show()
+
+
+def process_all_team_sales():
+    start_date = get_start_date()
+    end_date = get_end_date()
+    # Call the function
+    all_team_sales(start_date, end_date)
+
+
+# *****************************************************************
+# MENU OPTION 8: Rank sales over time
+# *****************************************************************
+def print_sales_ranking(start_date, end_date):
+    """
+    Calculates the total sales for each Sales_Team between start_date and end_date,
+    and prints each team in rank order of the sales values descending.
+    """
+    # Validate the start_date and end_date
+    if start_date not in sales2.columns or end_date not in sales2.columns:
+        print("Invalid date(s) provided. Please ensure the dates match the column names.")
+        return
+
+    # Ensure the start_date comes before the end_date
+    start_index = sales2.columns.get_loc(start_date)
+    end_index = sales2.columns.get_loc(end_date)
+    if start_index > end_index:
+        print("Start date must be before the end date.")
+        return
+
+    # Extract the sales data for the specified period and sum it up for each team
+    sales_columns = sales2.columns[start_index:end_index + 1]
+    team_sales = sales2.groupby('Sales_Team')[sales_columns].sum().sum(axis=1).sort_values(ascending=False)
+
+    # Print each team and their sales in rank order
+    print("Sales Team Rankings:")
+    for rank, (team, sales) in enumerate(team_sales.items(), start=1):
+        print(f"{rank}. {team}: {sales}")
+
+
+def process_print_sales_ranking():
+    start_date = get_start_date()
+    end_date = get_end_date()
+
+    # call the function
+    print_sales_ranking(start_date, end_date)
+
 # **********************************************************
 # **********************************************************
 # **********************************************************
@@ -407,8 +532,9 @@ def process_total_sales_over_time():
 x = main_menu()
 
 # Control loop to allow menu display
-while x == 1 or x == 2 or x == 3 or x == 4 or x - - 5 or x == 6 or x == 9:
+while x == 1 or x == 2 or x == 3 or x == 4 or x - - 5 or x == 6 or x == 7 or x == 9:
     if x == 1:
+        print()
         all_data()
     elif x == 2:
         print()
@@ -439,22 +565,37 @@ while x == 1 or x == 2 or x == 3 or x == 4 or x - - 5 or x == 6 or x == 9:
             print("region not in the data set")
     elif x == 3:
         # Enhanced search
+        print()
         print("Enhanced search selected")
         process_enhanced_search()
     elif x == 4:
         # Team performance
+        print()
         print("Team performance selected")
         process_highest_team_sales()
     elif x == 5:
         # Region performance
+        print()
         print("Region performance selected")
         print(process_total_sales_over_time())
     elif x == 6:
         # Plot team sales over time
-        print("Team sales analysis selected")
+        print()
+        print("Single Team sales analysis selected")
+        process_show_single_team_sales()
+    elif x == 7:
+        # all teams sales analysis
+        print()
+        print("All teams sales analysis selected")
+        process_all_team_sales()
+    elif x == 8:
+        # Rank the sales for teams by date
+        print()
+        print("Rank Team sales selected")
+        process_print_sales_ranking()
     elif x == 9:
         # Exit application
-        print()
+        print("")
         print("----------")
         print("Exit option selected. Leaving the application")
         print("----------")
