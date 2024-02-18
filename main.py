@@ -15,10 +15,10 @@ def main_menu():
     print('1) Return all current data')
     print('2) Return data for a specific region')
     print('3) Perform enhanced search')
-    print('4) Team performance')
-    print('5) Region performance')
+    print('4) Highest Team sales over time')
+    print('5) Total Period Sales')
     print('6) Single Team sales over time')
-    print('7) All teams sales over time')
+    print('7) Teams sales over time')
     print('9) Exit the program')
     choice = int(input("\n  Enter a menu number: "))
     return choice
@@ -201,7 +201,7 @@ def get_start_date():
 #   Part 2 End Date
 def get_end_date():
     while True:
-        selected_end_date = input("Enter an end sate in the format 01-Mmm: ")
+        selected_end_date = input("Enter an end date in the format 01-Mmm: ")
         if selected_end_date not in sales2.columns:
             print("ERROR: End date not found")
         else:
@@ -372,22 +372,60 @@ def process_highest_team_sales():
 
 
 # Calculate and return a formatted message
-def total_sales_over_time(start_of_period, end_of_period):
+# def total_sales_over_time(start_of_period, end_of_period):
+#     # Ensure the start_date comes before the end_date
+#     start_index = sales2.columns.get_loc(start_of_period)
+#     end_index = sales2.columns.get_loc(end_of_period)
+#     # very simple check. Error not handled
+#     if start_index > end_index:
+#         return "Start date must be before the end date."
+#
+#     # Calculate the total sales for the specified period
+#     sales_columns = sales2.columns[start_index:end_index + 1]
+#     total_sales = sales2[sales_columns].sum().sum()  # Double sum to get total of all sales
+#
+#     # Format and return the message
+#     message = f"The total sales value between {start_of_period} and {end_of_period} was {total_sales}"
+#     return message
+
+
+def show_period_total_sales(start_date=None, end_date=None):
+    """
+    Asks the user for start_date and end_date, calculates the total sales for each
+    of the months selected, and displays a bar chart titled "Period Total Sales".
+    """
+    # Since we can't use input() in this environment, we'll simulate it with function parameters
+    if start_date is None:
+        start_date = input("Enter the start date (format dd-Mmm, e.g., 01-Jan): ")
+    if end_date is None:
+        end_date = input("Enter the end date (format dd-Mmm, e.g., 01-Dec): ")
+
+    # Validate the start_date and end_date
+    if start_date not in sales2.columns or end_date not in sales2.columns:
+        print("Invalid date(s) provided. Please ensure the dates match the column names.")
+        return
+
     # Ensure the start_date comes before the end_date
-    start_index = sales2.columns.get_loc(start_of_period)
-    end_index = sales2.columns.get_loc(end_of_period)
-    # very simple check. Error not handled
+    start_index = sales2.columns.get_loc(start_date)
+    end_index = sales2.columns.get_loc(end_date)
     if start_index > end_index:
-        return "Start date must be before the end date."
+        print("Start date must be before the end date.")
+        return
 
-    # Calculate the total sales for the specified period
+    # Calculate the total sales for each month in the selected period
     sales_columns = sales2.columns[start_index:end_index + 1]
-    total_sales = sales2[sales_columns].sum().sum()  # Double sum to get total of all sales
+    total_sales_by_month = sales2[sales_columns].sum()
 
-    # Format and return the message
-    message = f"The total sales value between {start_of_period} and {end_of_period} was {total_sales}"
-    return message
-
+    # Plotting
+    plt.figure(figsize=(10, 6))
+    plt.style.use('fivethirtyeight')
+    total_sales_by_month.plot(kind='bar', color='skyblue')
+    plt.title("Period Total Sales")
+    plt.xlabel("Month")
+    plt.ylabel("Total Sales")
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
 
 # Get the dates needed and then call the method.
 def process_total_sales_over_time():
@@ -395,7 +433,7 @@ def process_total_sales_over_time():
     end_of_period = get_end_date()
 
     # Call the method above
-    total_sales_over_time(start_of_period, end_of_period)
+    show_period_total_sales(start_of_period, end_of_period)
 
 
 # *****************************************************************
